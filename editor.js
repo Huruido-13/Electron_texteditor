@@ -5,6 +5,7 @@ var current_fname = null;
 var footer = null;
 var sidebar = null;
 var change_flg = false;
+var filledId = null;
 
 window.addEventListener('DOMContentLoaded', onLoad);
 
@@ -18,13 +19,29 @@ function onLoad(){
     footer = document.querySelector("#footer");
     sidebar = document.querySelector("#sidebar");
     editor = ace.edit('editor_area');
+    editor.setShowPrintMargin(false);
     editor.setTheme('ace/theme/chaos');
     editor.session.setMode("ace/mode/text");
     editor.focus();
     //ドキュメントが変更された際に発生するイベントでフラグをTRUEにする
     editor.session.getDocument().on('change', (ob) =>{
         change_flg = true;
-    })
+    });
+
+    sidebar.addEventListener('dragover', (event)=>{
+        event.preventDefault();
+        folder_path = null;
+        folder_items = null
+        current_fname = null;
+    });
+    
+    sidebar.addEventListener('drop', (event) =>{
+        editor.session.getDocument().setValue('');
+        change_flg = false;
+        const folder = event.dataTransfer.files[0];
+        folder_path = folder.path;
+        loadPath();
+    });
 }
 
 function setTheme(tname){
@@ -63,10 +80,9 @@ function loadPath(){
             folder_items = files;
             let tag = '<ul>';
             for (const n in files){
-                tag += '<li id="item ' + n + '" onclick="openfile(' + n + ')">' + files[n] + '</li>'; 
+                tag += '<li id="item ' + n + '" onclick="openfile(' + n + ')"  oncontextmenu="fileContextMenu(' + n + ')">' + files[n] + '</li>'; 
             }
             tag += '</ul>';
-            console.log(tag);
             sidebar.innerHTML = tag;
         }
         else{
@@ -80,6 +96,9 @@ function loadPath(){
 function openfile(n){
     //サイドバーのファイルがクリックされた際にフラグがTRUEならファイルを保存する
     savefile();
+    if(filledId !== null){
+        clearBackground(filledId);
+    }
     current_fname = folder_items[n];
     let fpath = path.join(folder_path, current_fname);
     fs.readFile(fpath, (err,result) =>{
@@ -89,6 +108,8 @@ function openfile(n){
             change_flg = false;
             footer.textContent = ' "' + fpath + '" loaded.';
             setExt(current_fname);
+            fillBackground(n);
+            filledId = n;
         }
         else{
             dialog.showErrorBox(err.code + err.errno + err.message);
@@ -132,4 +153,56 @@ function savefile(){
             change_flg = false;
         }
     });
+}
+
+function createfile(){
+    $('#save-modal').modal('show');
+}
+
+function createfileresult(){
+    current_fname = document.querySelector("#input_file_name").value;
+    let fpath = path.join(folder_path, current_fname);
+    fs.writeFile(fpath, '', (err) =>{
+        editor.session.getDocument().setValue('');
+        footer.textContent = '"' + current_fname + '" created.';
+        change_flg = false;
+        loadPath();
+    })
+}
+
+function fileContextMenu(n){
+    let menu_temp = [
+        {
+            label:'Delete File',click: ()=>{
+                deleteFile(n);
+            }
+        }
+    ]
+    let menu = Menu.buildFromTemplate(menu_temp);
+    menu.popup({window:remote.getFocusedWindow})
+}
+
+function deleteFile(n){
+    current_fname = folder_items[n];
+    let fpath = path.join(folder_path, current_fname);
+    fs.unlink(fpath, (err) =>{
+        if(err){
+            alert("削除できませんでした。")
+            return;
+        }
+        alert("削除しました。")
+        loadPath()
+    })
+}
+
+function fillBackground(n){
+    let elemId = "item " + n;
+    let elem = document.getElementById(elemId);
+    elem.style.background = '#808080';
+}
+
+function clearBackground(filledId){
+    let elemId = "item " + filledId;
+    let elem = document.getElementById(elemId);
+    elem.style.background = '#505050';
 }

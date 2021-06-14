@@ -13,11 +13,28 @@
 </head>
 
 <body>
+    <div class="modal" tabindex="-1" role="dialog" id="save-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Save file name:</p>
+                    <input type="text" class="form-control" id="input_file_name">
+                </div>
+                <div class="modao-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="createfileresult()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar bg-secondary" id="header">
         <h1 class="h5 text-light">Sample-editors</h1>
     </nav>
     <div class="row m-0" id="content">
-        <div class="col-3 col-sm-3 col-md-2 col-lg-2 m-0" id="sidebar">*sidebar*</div> 
+        <div class="col-12 col-sm-2 col-md-2 col-lg-2 m-0" id="sidebar">*sidebar*</div> 
         <div class="col-12 col-sm-8 col-md-9 col-lg-10 m-0" id="editor_area"></div>
     </div>
     <div class="row m-0" id="footer">* this is footer. *</div>

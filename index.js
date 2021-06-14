@@ -1,6 +1,5 @@
 const { app, Menu, BrowserWindow } = require('electron');
 const path = require('path');
-const { createInflate } = require('zlib');
 var fontSize = 12;
 
 function createWindow(){
@@ -26,10 +25,10 @@ function createMenu(){
                 {label:'New',click: ()=>{
                     createWindow();
                 }},
-                {label:'Open folder',click:() =>{
+                {label:'Open folder',click: () =>{
                     openfolder();
                 }},
-                {lebel:'Create File',click:() =>{
+                {label:'Create File',click: () =>{
                     createfile();
                 }},
                 {role:'close'},
