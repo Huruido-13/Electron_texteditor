@@ -31,7 +31,7 @@ function createMenu(){
                 }},
                 {lebel:'Create File',click:() =>{
                     createfile();
-                }}
+                }},
                 {role:'close'},
                 {type:'separator'},
                 {role:'quit'},
