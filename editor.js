@@ -6,6 +6,8 @@ var footer = null;
 var sidebar = null;
 var change_flg = false;
 var filledId = null;
+var fpath = null;
+var counter = 1;
 
 window.addEventListener('DOMContentLoaded', onLoad);
 
@@ -30,12 +32,14 @@ function onLoad(){
 
     sidebar.addEventListener('dragover', (event)=>{
         event.preventDefault();
-        folder_path = null;
-        folder_items = null
-        current_fname = null;
+        event.stopPropagation();
+        console.log("dragover")
     });
     
     sidebar.addEventListener('drop', (event) =>{
+        event.preventDefault();
+        event.stopPropagation();
+        console.log("drop")
         editor.session.getDocument().setValue('');
         change_flg = false;
         const folder = event.dataTransfer.files[0];
@@ -100,11 +104,19 @@ function openfile(n){
         clearBackground(filledId);
     }
     current_fname = folder_items[n];
-    let fpath = path.join(folder_path, current_fname);
+    fpath = path.join(folder_path, current_fname);
+    fpathExtention = path.extname(fpath);
+
+    if(fpathExtention === '.pdf'){
+        openPDF(fpath);
+        editor.session.getDocument().setValue("");
+        return;
+    }
     fs.readFile(fpath, (err,result) =>{
         if(err === null){
             let data = result.toString();
             editor.session.getDocument().setValue(data);
+            editor.setFontSize(18)
             change_flg = false;
             footer.textContent = ' "' + fpath + '" loaded.';
             setExt(current_fname);
@@ -205,4 +217,75 @@ function clearBackground(filledId){
     let elemId = "item " + filledId;
     let elem = document.getElementById(elemId);
     elem.style.background = '#505050';
+}
+
+function find(){
+    $('#find-modal').modal('show');
+}
+
+function search(){
+    let fstr = document.querySelector('#input_find').value;
+    editor.focus();
+    editor.gotoLine(0);
+    console.log(fstr);
+    editor.find(fstr,{
+        backwards: true,
+        wrap: false,
+        caseSensitive: false,
+        wholeWord: true,
+        regExp: false
+    });
+}
+
+function findNext(){
+    editor.findNext();
+}
+
+function findPrev(){
+    editor.findPrevious();
+}
+
+function PrintToPDF(){
+
+    let win = BrowserWindow.getFocusedWindow();
+
+    var options = {
+        marginsType: 0,
+        pageSize: 'A4',
+        printBackground: true,
+        printSelectionOnly: false,
+        landscape: false
+    }
+
+    const secondPath = "print" + counter + '.pdf';
+
+    pdfPath = path.join(folder_path,secondPath);
+
+    win.webContents.printToPDF(options).then(data => {
+        fs.writeFile(pdfPath, data, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log('PDF Generated Successfully');
+                loadPath();
+            }
+            counter++;
+        });
+    }).catch(error => {
+        console.log(error)
+    });
+
+}
+
+function openPDF(filePath){
+    const options = {
+        width: 800,
+        height: 600,
+        webPreferences: {
+            nodeIntegration: false,
+        contextIsolation: true
+        }
+        }
+        var winPdf = pdfview.showpdf(filePath, options);
+        winPdf.show();
 }

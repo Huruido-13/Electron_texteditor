@@ -1,14 +1,18 @@
 const { app, Menu, BrowserWindow } = require('electron');
 const path = require('path');
-var fontSize = 12;
+var fontSize = 24;
 
 function createWindow(){
     win = new BrowserWindow({
-        width: 600,
-        height: 400,
+        width: 800,
+        height: 600,
         webPreferences:{
+            nodeIntegration:true,
             enableRemoteModule: true,
             contextIsolation: false,
+            defaultFontFamily:{
+                defaultFontSize:24
+            },
             preload:path.join(app.getAppPath(), 'preload.js')
         }
     });
@@ -22,7 +26,7 @@ function createMenu(){
         {
             label:'File',
             submenu:[
-                {label:'New',click: ()=>{
+                {label:'New Window',click: ()=>{
                     createWindow();
                 }},
                 {label:'Open folder',click: () =>{
@@ -30,6 +34,12 @@ function createMenu(){
                 }},
                 {label:'Create File',click: () =>{
                     createfile();
+                }},
+                {label:'Print to PDF',click:() =>{
+                    PrintToPDF();
+                }},
+                {label:"View PDF",click:() =>{
+                    viewPDF();
                 }},
                 {role:'close'},
                 {type:'separator'},
@@ -64,12 +74,23 @@ function createMenu(){
             setMode('php')
         }}
     ]},
-    {label:'FontSize',submenu:[
+    {label:'Font',submenu:[
         {label:"ZoomIN", click:() =>{
             setFontSize(++fontSize)
         }},
         {label:"ZoomOut", click:() =>{
             setFontSize(--fontSize)
+        }},
+    ]},
+    {label:"Find", submenu:[
+        {label:'Find',click:() =>{
+            find();
+        }},
+        {label:'Find Next',accelerator:'CommandOrControl+right',click:() =>{
+            findNext();
+        }},
+        {label:'Find Prev',accelerator:'COmmandOrControl+left', click:() =>{
+            findPrev()
         }}
     ]}
     ]
@@ -102,6 +123,48 @@ function createfile(){
     w.webContents.executeJavaScript('createfile()');
 }
 
+function find(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('find()');
+}
+
+function findNext(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('findNext()');
+}
+
+function findPrev(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('findPrev()');
+}
+
+function PrintToPDF(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('PrintToPDF()');
+}
+
+function viewPDF(){
+    win = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences:{
+            nodeIntegration:true,
+            enableRemoteModule: true,
+            contextIsolation: false,
+            defaultFontFamily:{
+                defaultFontSize:24
+            },
+            preload:path.join(app.getAppPath(), 'preload.js')
+        }
+    });
+    win.loadFile('pdfviewer.html');
+    win.webContents.openDevTools();
+}
 
 createMenu();
 app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit()
+    }})
