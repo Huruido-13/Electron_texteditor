@@ -4,9 +4,11 @@ const viewerElement = document.getElementById("viewer");
 
 const openFileBtn = document.getElementById("open");
 const saveFileBtn = document.getElementById("save");
+const fromEditorBtn = document.getElementById("fromeditor");
+
 
 WebViewer({
-    path:'./public', 
+    path:'../public', 
 },
 viewerElement).then(instance => {
     instance.setTheme('dark');
@@ -60,5 +62,9 @@ viewerElement).then(instance => {
                 }
             )
         }
-    }
+    };
 });
+
+function btnClick(){
+    openFileBtn.click();
+}

@@ -7,7 +7,13 @@ var sidebar = null;
 var change_flg = false;
 var filledId = null;
 var fpath = null;
-var counter = 1;
+var pdfCounter = 1;
+var htmlCounter = 1000;
+var tag = '';
+var familyTag = "";
+var bufTag = "";
+var dirListPathArray = [];
+var fisrtCheck = true;
 
 window.addEventListener('DOMContentLoaded', onLoad);
 
@@ -69,7 +75,7 @@ function openfolder(){
     //ディレクトリを開かないとundefinedがリターンする
     if (result !== undefined){
         folder_path = result[0];
-        loadPath();
+        loadPath()
         footer.textContent = 'open dir:"' + folder_path + '".';
     } 
     else{
@@ -79,21 +85,31 @@ function openfolder(){
 
 //ダイアログから開かれたディレクトリを読み込み、ファイルを一覧としてサイドバーに表示する
 function loadPath(){
-    fs.readdir(folder_path, (err, files) =>{
-        if(err === null){
-            folder_items = files;
-            let tag = '<ul>';
-            for (const n in files){
-                tag += '<li id="item ' + n + '" onclick="openfile(' + n + ')"  oncontextmenu="fileContextMenu(' + n + ')">' + files[n] + '</li>'; 
-            }
-            tag += '</ul>';
-            sidebar.innerHTML = tag;
-        }
-        else{
-            alert(err);
-        }
+    let dirArray = fs.readdirSync(folder_path)
+    folder_items = dirArray;
+    tag = '<ul>';
 
-    })
+    for (const n in dirArray){
+    try {
+        fpath = folder_path + "\\" + dirArray[n];
+    if(fs.statSync(fpath).isDirectory()){
+        continue;
+    }
+
+    else{
+        tag += '<li id="item ' + n + '" onclick="openfile(' + n 
+        + ')"  oncontextmenu="fileContextMenu(' + n + ')">' + dirArray[n] + '</li>'; 
+    }
+} 
+    catch(err) {
+    alert(err.code,err.message)}
+    }
+
+    
+    console.log(tag);
+    sidebar.innerHTML = tag + '</ul>';
+    
+
 }
 
 //fs.readdir()から受け取ったディレクトリ内のファイルの配列からファイルを取得
@@ -171,8 +187,16 @@ function createfile(){
     $('#save-modal').modal('show');
 }
 
-function createfileresult(){
+async function createfileresult(){
     current_fname = document.querySelector("#input_file_name").value;
+    if(folder_path === null){
+        folder_path = await dialog.showOpenDialog({
+            properties:['openDirectory'],
+            title:"Select File",
+            buttonLabel:"Load",})
+        folder_path = folder_path.filePaths[0].toString();
+        console.log(typeof(folder_path));
+    }
     let fpath = path.join(folder_path, current_fname);
     fs.writeFile(fpath, '', (err) =>{
         editor.session.getDocument().setValue('');
@@ -277,15 +301,80 @@ function PrintToPDF(){
 
 }
 
-function openPDF(filePath){
-    const options = {
+function openPDF(PDFpath){
+    alert("PDFビューワーから開いてください")
+    win = new BrowserWindow({
         width: 800,
         height: 600,
-        webPreferences: {
-            nodeIntegration: false,
-        contextIsolation: true
+        webPreferences:{
+            nodeIntegration:true,
+            enableRemoteModule: true,
+            contextIsolation: false,
+            defaultFontFamily:{
+                defaultFontSize:24
+            },
+            preload:path.join(app.getAppPath(), 'preload.js')
         }
+    });
+    win.loadFile('./PDFVIEWER/pdfviewer.html');
+    win.webContents.openDevTools();
+    PDFpath = 'loadPDFfromEditor("' + PDFpath + '")';
+    console.log(PDFpath);
+    win.webContents.executeJavaScript('btnClick()');
+
+}
+
+// ファイルシステムツリーの構築案
+function getFileList(dirpath, callback){
+    /*ディレクトリを読み取り、fs.statプロパティを使ってファイルかディレクトリか判断する
+　　ディレクトリなら再帰し、ファイルならHTML要素を作成する　この再帰関数によってファイルシステムツリーを構築する*/
+    //ディレクトリ内のファイルの配列を返す
+    let dirArray = fs.readdirSync(dirpath);
+    dirListPathArray.push(dirpath);
+    if(!dirArray){
+        throw err("Can't read directory");
+    }
+
+    for (const fileOrDir of dirArray) {
+
+        const fp = path.join(dirpath, fileOrDir);
+
+
+        if (fs.statSync(fp).isDirectory()) {
+            console.log(fp)
+            getFileList(fp, callback);
+            //ファイルの出力ループを抜けるとここに戻ってくる
+            callback(fileOrDir, 1);
+            //ファイルに到達するとelse節が実行される
+        } else {
+            callback(fileOrDir);
+            console.log("dekiteruyo")
         }
-        var winPdf = pdfview.showpdf(filePath, options);
-        winPdf.show();
+    }
+
+}
+
+function concatFileListString(filename, checkDir){
+    if(checkDir === 1){
+        if(fisrtCheck){
+            familyTag = '<details><summary>' + filename + '</summary>';
+            tag += familyTag + bufTag + '</details>';
+
+            sidebar.innerHTML = tag;
+            fisrtCheck = false;
+        }
+        else{
+            familyTag = '<details><summary>' + filename + '</summary>';
+            tag = familyTag + bufTag + '</details>';
+            sidebar.innerHTML = tag.concat(sidebar.innerHTML);
+        }
+        
+        bufTag = "";
+
+    }
+    else{
+        bufTag += '<li id="item ' + htmlCounter + '" onclick="openfile(' + htmlCounter 
+        + ')"  oncontextmenu="fileContextMenu(' + htmlCounter + ')">' + filename + '</li>'
+    }
+    htmlCounter++;
 }

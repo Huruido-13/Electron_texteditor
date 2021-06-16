@@ -10,4 +10,5 @@ window.dialog = dialog;
 window.path = path;
 window.fs = fs;
 window.app = app;
-window.pdfview = pdfview;
+window.nodeRequire = require;
+delete window.module;

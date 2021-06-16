@@ -157,7 +157,7 @@ function viewPDF(){
             preload:path.join(app.getAppPath(), 'preload.js')
         }
     });
-    win.loadFile('pdfviewer.html');
+    win.loadFile('./PDFVIEWER/pdfviewer.html');
     win.webContents.openDevTools();
 }
 
