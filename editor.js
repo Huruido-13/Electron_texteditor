@@ -93,6 +93,7 @@ function loadPath(){
     try {
         fpath = folder_path + "\\" + dirArray[n];
     if(fs.statSync(fpath).isDirectory()){
+        //ファイルシステムツリーは未実装なためコンティニューする
         continue;
     }
 
@@ -250,7 +251,6 @@ function find(){
 function search(){
     let fstr = document.querySelector('#input_find').value;
     editor.focus();
-    editor.gotoLine(0);
     console.log(fstr);
     editor.find(fstr,{
         backwards: true,
@@ -323,6 +323,39 @@ function openPDF(PDFpath){
     win.webContents.executeJavaScript('btnClick()');
 
 }
+
+function replace(){
+    document.querySelector("#input_find2").value = "";
+    document.querySelector("#input_replace").value = "";
+    $("#replace-modal").modal('show');
+}
+
+function replacenow(){
+    let fstr = document.querySelector("#input_find2").value;
+    console.log(fstr);
+    editor.focus();
+    editor.find(fstr,{
+        backwards: false,
+        wrap: false,
+        caseSensitive: false,
+        wholeWord: false,
+        regExp: false
+    });
+    replacenext();
+}
+
+function replacenext(){
+    let rstr = document.querySelector('#input_replace').value;
+    console.log(rstr);
+    editor.replace(rstr,{
+        backwards: false,
+        wrap: false,
+        caseSensitive: false,
+        wholeWord: false,
+        regExp: false
+    })
+}
+
 
 // ファイルシステムツリーの構築案
 function getFileList(dirpath, callback){

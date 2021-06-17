@@ -91,6 +91,15 @@ function createMenu(){
         }},
         {label:'Find Prev',accelerator:'COmmandOrControl+left', click:() =>{
             findPrev()
+        }},
+        {label:'Replace', click:() =>{
+            replace();
+        }},
+        {label:'Replace Next', accelerator:'COmmandOrControl+r', click:() =>{
+            replacenext();
+        }},
+        {label:'Repalce ALL',click:() =>{
+            replaceall();
         }}
     ]}
     ]
@@ -159,6 +168,21 @@ function viewPDF(){
     });
     win.loadFile('./PDFVIEWER/pdfviewer.html');
     win.webContents.openDevTools();
+}
+
+function replace(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('replace()');
+}
+
+function replacenext(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('replacenext()');
+}
+
+function replaceall(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('replaceall()');
 }
 
 createMenu();
