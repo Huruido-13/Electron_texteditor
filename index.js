@@ -101,7 +101,10 @@ function createMenu(){
         {label:'Repalce ALL',click:() =>{
             replaceall();
         }}
-    ]}
+    ]},
+    {label:'Terminal', click: () =>{
+        openTerminal();
+    }}
     ]
     let menu = Menu.buildFromTemplate(menu_temp);
     Menu.setApplicationMenu(menu);
@@ -183,6 +186,11 @@ function replacenext(){
 function replaceall(){
     let w = BrowserWindow.getFocusedWindow();
     w.webContents.executeJavaScript('replaceall()');
+}
+
+function openTerminal(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('openTerminal()');
 }
 
 createMenu();

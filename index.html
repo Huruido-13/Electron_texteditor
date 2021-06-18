@@ -70,6 +70,26 @@
             </div>
         </div>
     </div>
+
+    <div class="modal" tabindex="-1" role="dialog" id="terminal-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Terminal</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Enter command:</p>
+                    <input type="text" class="form-control" id="input_cmd">
+                </div>
+                <div class="modao-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="doCommand()">Enter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <nav class="navbar bg-secondary" id="header">
         <h1 class="h5 text-light">Sample-editors</h1>
     </nav>

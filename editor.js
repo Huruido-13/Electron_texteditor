@@ -14,6 +14,23 @@ var familyTag = "";
 var bufTag = "";
 var dirListPathArray = [];
 var fisrtCheck = true;
+var contextcheck = false;
+
+let menu_temp = [
+        {role:'cut'},
+        {role:'copy'},
+        {role:'paste'},
+    ];
+
+let menu = Menu.buildFromTemplate(menu_temp);
+
+window.addEventListener('contextmenu', (e) =>{
+    if(!contextcheck){
+        e.preventDefault();
+        menu.popup({window:remote.getCurrentWindow()}) 
+    }
+
+}, false);
 
 window.addEventListener('DOMContentLoaded', onLoad);
 
@@ -95,6 +112,7 @@ function loadPath(){
     if(fs.statSync(fpath).isDirectory()){
         //ファイルシステムツリーは未実装なためコンティニューする
         continue;
+        getFileList(fpath, concatFileListString)
     }
 
     else{
@@ -124,26 +142,55 @@ function openfile(n){
     fpath = path.join(folder_path, current_fname);
     fpathExtention = path.extname(fpath);
 
-    if(fpathExtention === '.pdf'){
-        openPDF(fpath);
-        editor.session.getDocument().setValue("");
-        return;
-    }
-    fs.readFile(fpath, (err,result) =>{
-        if(err === null){
-            let data = result.toString();
-            editor.session.getDocument().setValue(data);
-            editor.setFontSize(18)
-            change_flg = false;
+    switch (fpathExtention) {
+        case '.pdf':
+            openPDF(fpath);
+            editor.session.getDocument().setValue("");
             footer.textContent = ' "' + fpath + '" loaded.';
-            setExt(current_fname);
             fillBackground(n);
             filledId = n;
-        }
-        else{
-            dialog.showErrorBox(err.code + err.errno + err.message);
-        }
-    })
+            break;
+        case '.py':
+            
+        case '.js':
+        
+        case '.txt':
+
+        case '.c': 
+        
+        case '.cpp':
+            
+        case '.java':
+        
+        case '.xml':
+            
+        case '.html':
+
+        case '.json':
+            
+        case '.css':
+            fs.readFile(fpath, (err,result) =>{
+                if(err === null){
+                    let data = result.toString();
+                    editor.session.getDocument().setValue(data);
+                    editor.setFontSize(18)
+                    change_flg = false;
+                    footer.textContent = ' "' + fpath + '" loaded.';
+                    setExt(current_fname);
+                    fillBackground(n);
+                    filledId = n;
+                }
+                else{
+                    dialog.showErrorBox(err.code + err.errno + err.message);
+                }
+            })
+            break;
+        default:
+            alert('テキストファイル以外は表示できません');
+            editor.session.getDocument().setValue("");
+            break;
+    }
+
 }
 
 //拡張子によってMODEを変更する
@@ -168,6 +215,8 @@ function setExt(fname){
         case '.php':
             setMode('php');
             break;
+        default:
+            return;
     }
 }
 
@@ -208,6 +257,7 @@ async function createfileresult(){
 }
 
 function fileContextMenu(n){
+    contextcheck = true;
     let menu_temp = [
         {
             label:'Delete File',click: ()=>{
@@ -230,6 +280,7 @@ function deleteFile(n){
         alert("削除しました。")
         loadPath()
     })
+    filledId = null;
 }
 
 function fillBackground(n){
@@ -240,8 +291,15 @@ function fillBackground(n){
 
 function clearBackground(filledId){
     let elemId = "item " + filledId;
-    let elem = document.getElementById(elemId);
-    elem.style.background = '#505050';
+    try{
+        let elem = document.getElementById(elemId);
+        elem.style.background = '#505050';
+    }
+    catch{
+        fillBackground(filledId);
+    }
+
+
 }
 
 function find(){
@@ -253,7 +311,7 @@ function search(){
     editor.focus();
     console.log(fstr);
     editor.find(fstr,{
-        backwards: true,
+        backwards: false,
         wrap: false,
         caseSensitive: false,
         wholeWord: true,
@@ -272,6 +330,7 @@ function findPrev(){
 function PrintToPDF(){
 
     let win = BrowserWindow.getFocusedWindow();
+    let isExist = true;
 
     var options = {
         marginsType: 0,
@@ -281,9 +340,20 @@ function PrintToPDF(){
         landscape: false
     }
 
-    const secondPath = "print" + counter + '.pdf';
+    
 
-    pdfPath = path.join(folder_path,secondPath);
+    while(isExist){
+        const secondPath = "print" + pdfCounter + '.pdf';
+        pdfPath = path.join(folder_path,secondPath);
+        try{
+            fs.statSync(pdfPath);
+            isExist = true;
+            ++pdfCounter;
+        }
+        catch{
+            isExist = false
+        }
+    }
 
     win.webContents.printToPDF(options).then(data => {
         fs.writeFile(pdfPath, data, function (err) {
@@ -293,7 +363,7 @@ function PrintToPDF(){
                 console.log('PDF Generated Successfully');
                 loadPath();
             }
-            counter++;
+            pdfCounter++;
         });
     }).catch(error => {
         console.log(error)
@@ -303,24 +373,24 @@ function PrintToPDF(){
 
 function openPDF(PDFpath){
     alert("PDFビューワーから開いてください")
-    win = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences:{
-            nodeIntegration:true,
-            enableRemoteModule: true,
-            contextIsolation: false,
-            defaultFontFamily:{
-                defaultFontSize:24
-            },
-            preload:path.join(app.getAppPath(), 'preload.js')
-        }
-    });
-    win.loadFile('./PDFVIEWER/pdfviewer.html');
-    win.webContents.openDevTools();
-    PDFpath = 'loadPDFfromEditor("' + PDFpath + '")';
-    console.log(PDFpath);
-    win.webContents.executeJavaScript('btnClick()');
+    // win = new BrowserWindow({
+    //     width: 800,
+    //     height: 600,
+    //     webPreferences:{
+    //         nodeIntegration:true,
+    //         enableRemoteModule: true,
+    //         contextIsolation: false,
+    //         defaultFontFamily:{
+    //             defaultFontSize:24
+    //         },
+    //         preload:path.join(app.getAppPath(), 'preload.js')
+    //     }
+    // });
+    // win.loadFile('./PDFVIEWER/pdfviewer.html');
+    // win.webContents.openDevTools();
+    // PDFpath = 'loadPDFfromEditor("' + PDFpath + '")';
+    // console.log(PDFpath);
+    // win.webContents.executeJavaScript('btnClick()');
 
 }
 
@@ -356,6 +426,23 @@ function replacenext(){
     })
 }
 
+function toString (bytes) {
+    return Encoding.convert(bytes, {
+    from: 'SJIS',
+    to: 'UNICODE',
+    type: 'string',
+    });
+};
+
+function openTerminal(){
+    $("#terminal-modal").modal('show');
+}
+
+function doCommand(){
+    let cmd = document.querySelector('#input_cmd').value;
+    const stdout = execSync(cmd);
+    console.log(toString(stdout));
+}
 
 // ファイルシステムツリーの構築案
 function getFileList(dirpath, callback){

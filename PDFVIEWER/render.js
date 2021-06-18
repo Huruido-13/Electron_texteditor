@@ -4,7 +4,6 @@ const viewerElement = document.getElementById("viewer");
 
 const openFileBtn = document.getElementById("open");
 const saveFileBtn = document.getElementById("save");
-const fromEditorBtn = document.getElementById("fromeditor");
 
 
 WebViewer({
