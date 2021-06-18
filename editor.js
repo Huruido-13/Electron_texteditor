@@ -15,8 +15,16 @@ var bufTag = "";
 var dirListPathArray = [];
 var fisrtCheck = true;
 var contextcheck = false;
+var fileUrlObj = {};
+var dirCheck = false;
 
 let menu_temp = [
+    {label:'create File', click:() =>{
+        createfile();
+    }},
+    {label:'create Directory', click:() =>{
+        createfile(true);
+    }},
         {role:'cut'},
         {role:'copy'},
         {role:'paste'},
@@ -40,7 +48,6 @@ function onLoad(){
     w.on('close', (e) =>{
         savefile()
     })
-    const editor_area = document.querySelector("#editor_area")
     footer = document.querySelector("#footer");
     sidebar = document.querySelector("#sidebar");
     editor = ace.edit('editor_area');
@@ -92,6 +99,9 @@ function openfolder(){
     //ディレクトリを開かないとundefinedがリターンする
     if (result !== undefined){
         folder_path = result[0];
+        let folder_name = folder_path.split('\\');
+        tag = '<ul>';
+        tag += '<details><summary>' + '<b>' + folder_name[folder_name.length - 1] + '</b>' + '</summary><ul>'
         loadPath()
         footer.textContent = 'open dir:"' + folder_path + '".';
     } 
@@ -105,20 +115,20 @@ function loadPath(){
     let dirArray = fs.readdirSync(folder_path)
     let lasttag ="";
     folder_items = dirArray;
-    tag = '<ul>';
 
     for (const n in dirArray){
     try {
-        fpath = folder_path + "\\" + dirArray[n];
+        fpath = path.join(folder_path, dirArray[n]);
     if(fs.statSync(fpath).isDirectory()){
-        //ファイルシステムツリーは未実装なためコンティニューする
         tag += '<details><summary>' + dirArray[n] + '</summary><ul>'
         getFileList(fpath);
         tag += '</ul></details>'
     }
 
     else{
-        lasttag += '<li id="item ' + n + '" onclick="openfile(' + n 
+        //fileUrlObjにidとURLを紐付けて保存する
+        fileUrlObj[n] = fpath;
+        lasttag += '<li id="item ' + n + '" onclick="openfile(' + n
         + ')"  oncontextmenu="fileContextMenu(' + n + ')">' + dirArray[n] + '</li>'; 
     }
 } 
@@ -127,7 +137,7 @@ function loadPath(){
     }
 
     
-    console.log(tag);
+    console.log(tag + lasttag +  '</ul>');
     sidebar.innerHTML = tag + lasttag + '</ul>';
     
 
@@ -135,13 +145,19 @@ function loadPath(){
 
 //fs.readdir()から受け取ったディレクトリ内のファイルの配列からファイルを取得
 function openfile(n){
-    //サイドバーのファイルがクリックされた際にフラグがTRUEならファイルを保存する
+    /*サイドバーのファイルがクリックされた際にフラグがTRUEなら
+    クリックされたファイルが開かれる前にファイルを保存する
+    新しくファイルが開かれる前にfpath（一つ前のファイルパス）を利用する*/
     savefile();
     if(filledId !== null){
         clearBackground(filledId);
     }
-    current_fname = folder_items[n];
-    fpath = path.join(folder_path, current_fname);
+
+    //openfile(n)はidで呼び出されるのでオブジェクトのキーとしてファイルパスを呼び出す
+    fpath = fileUrlObj[n];
+    // current_fname = folder_items[n];
+    // fpath = path.join(folder_path, current_fname);
+    console.log(fileUrlObj);
     fpathExtention = path.extname(fpath);
 
     switch (fpathExtention) {
@@ -178,7 +194,7 @@ function openfile(n){
                     editor.setFontSize(18)
                     change_flg = false;
                     footer.textContent = ' "' + fpath + '" loaded.';
-                    setExt(current_fname);
+                    setExt(fpathExtention);
                     fillBackground(n);
                     filledId = n;
                 }
@@ -190,15 +206,16 @@ function openfile(n){
         default:
             alert('テキストファイル以外は表示できません');
             editor.session.getDocument().setValue("");
+            fillBackground(n);
+            filledId = n;
             break;
     }
 
 }
 
 //拡張子によってMODEを変更する
-function setExt(fname){
-    let ext = path.extname(fname);
-    switch(ext){
+function setExt(fpathExtention){
+    switch(fpathExtention){
         case '.txt':
             setMode("text");
             break;
@@ -226,7 +243,6 @@ function savefile(){
     if(!change_flg){
         return;
     }
-    let fpath = path.join(folder_path, current_fname);
     let data = editor.session.getDocument().getValue();
     fs.writeFile(fpath, data, (err) =>{
         if(err === null){
@@ -235,19 +251,23 @@ function savefile(){
     });
 }
 
-function createfile(){
+function createfile(n = false){
+    dirCheck = n;
     $('#save-modal').modal('show');
 }
 
-async function createfileresult(){
+function createfileresult(){
+    if(dirCheck){
+        createdirectory();
+        return;
+    }
     current_fname = document.querySelector("#input_file_name").value;
     if(folder_path === null){
-        folder_path = await dialog.showOpenDialog({
+        folder_path = dialog.showOpenDialogSync({
             properties:['openDirectory'],
             title:"Select File",
             buttonLabel:"Load",})
-        folder_path = folder_path.filePaths[0].toString();
-        console.log(typeof(folder_path));
+        folder_path = folder_path[0];
     }
     let fpath = path.join(folder_path, current_fname);
     fs.writeFile(fpath, '', (err) =>{
@@ -255,6 +275,25 @@ async function createfileresult(){
         footer.textContent = '"' + current_fname + '" created.';
         change_flg = false;
         loadPath();
+    })
+}
+
+function createdirectory(){
+    current_fname = document.querySelector("#input_file_name").value;
+    if(folder_path === null){
+        folder_path = dialog.showOpenDialogSync({
+            properties:['openDirectory'],
+            title:"Select File",
+            buttonLabel:"Load",})
+        folder_path = folder_path[0];
+    }
+    let fpath = path.join(folder_path, current_fname);
+    fs.mkdir(fpath, (err) =>{
+        editor.session.getDocument().setValue('');
+        footer.textContent = '"' + current_fname + '" created.';
+        change_flg = false;
+        loadPath();
+        dirCheck = false;
     })
 }
 
@@ -312,7 +351,6 @@ function search(){
     let fstr = document.querySelector('#input_find').value;
     editor.focus();
     editor.gotoLine(0);
-    console.log(fstr);
     editor.find(fstr,{
         backwards: true,
         wrap: true,
@@ -344,13 +382,16 @@ function PrintToPDF(){
     }
 
     if(!folder_path){
-        folder_path = dialog.showOpenDialog({
+        folder_path = dialog.showOpenDialogSync({
             properties:['openDirectory'],
             title:"Select File",
             buttonLabel:"Save",
             
         });
+        folder_path = folder_path[0];
     }
+
+
 
     while(isExist){
         const secondPath = "print" + pdfCounter + '.pdf';
@@ -427,7 +468,6 @@ function replacenow(){
 
 function replacenext(){
     let rstr = document.querySelector('#input_replace').value;
-    console.log(rstr);
     editor.replace(rstr,{
         backwards: false,
         wrap: false,
@@ -479,9 +519,10 @@ function getFileList(dirpath){
             tag += '</ul></details>'
             
         } else {
+            fileUrlObj[htmlCounter] = fp
             tag +='<li id="item ' + htmlCounter + '" onclick="openfile(' + htmlCounter 
-            + ')"  oncontextmenu="fileContextMenu(' + htmlCounter + ')">' + fileOrDir + '</li>'
-            htmlCounter++;
+            + ')"  oncontextmenu="fileContextMenu(' + htmlCounter + ')">' + fileOrDir + '</li>';
+            ++htmlCounter;
             console.log("dekiteruyo")
         }
     }

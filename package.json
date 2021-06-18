@@ -1,15 +1,16 @@
+
 {
-  "name": "sample_editor",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@pdftron/webviewer": "^7.3.3",
-    "electron-pdf-viewer": "^1.0.1"
+    "name": "sample_editor",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+      "@pdftron/webviewer": "^7.3.3",
+      "electron-pdf-viewer": "^1.0.1"
+    }
   }
-}

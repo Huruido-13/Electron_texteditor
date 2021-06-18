@@ -29,16 +29,19 @@ function createMenu(){
                 {label:'New Window',click: ()=>{
                     createWindow();
                 }},
-                {label:'Open folder',click: () =>{
+                {label:'Open Folder',click: () =>{
                     openfolder();
                 }},
                 {label:'Create File',click: () =>{
                     createfile();
                 }},
+                {label:'Create Directory',click: () =>{
+                    createdirectory();
+                }},
                 {label:'Print to PDF',click:() =>{
                     PrintToPDF();
                 }},
-                {label:"View PDF",click:() =>{
+                {label:"PDF Viewer",click:() =>{
                     viewPDF();
                 }},
                 {role:'close'},
@@ -135,6 +138,11 @@ function createfile(){
     w.webContents.executeJavaScript('createfile()');
 }
 
+function createdirectory(){
+    let w = BrowserWindow.getFocusedWindow();
+    w.webContents.executeJavaScript('createfile(true)');
+}
+
 function find(){
     let w = BrowserWindow.getFocusedWindow();
     w.webContents.executeJavaScript('find()');
@@ -192,6 +200,7 @@ function openTerminal(){
     let w = BrowserWindow.getFocusedWindow();
     w.webContents.executeJavaScript('openTerminal()');
 }
+
 
 createMenu();
 app.whenReady().then(createWindow);
