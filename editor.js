@@ -1,6 +1,6 @@
 var editor = null;
 var folder_path = null;
-var folder_items = null
+var folder_items = null;
 var current_fname = null;
 var footer = null;
 var sidebar = null;
@@ -103,6 +103,7 @@ function openfolder(){
 //ダイアログから開かれたディレクトリを読み込み、ファイルを一覧としてサイドバーに表示する
 function loadPath(){
     let dirArray = fs.readdirSync(folder_path)
+    let lasttag ="";
     folder_items = dirArray;
     tag = '<ul>';
 
@@ -111,12 +112,13 @@ function loadPath(){
         fpath = folder_path + "\\" + dirArray[n];
     if(fs.statSync(fpath).isDirectory()){
         //ファイルシステムツリーは未実装なためコンティニューする
-        continue;
-        getFileList(fpath, concatFileListString)
+        tag += '<details><summary>' + dirArray[n] + '</summary><ul>'
+        getFileList(fpath);
+        tag += '</ul></details>'
     }
 
     else{
-        tag += '<li id="item ' + n + '" onclick="openfile(' + n 
+        lasttag += '<li id="item ' + n + '" onclick="openfile(' + n 
         + ')"  oncontextmenu="fileContextMenu(' + n + ')">' + dirArray[n] + '</li>'; 
     }
 } 
@@ -126,7 +128,7 @@ function loadPath(){
 
     
     console.log(tag);
-    sidebar.innerHTML = tag + '</ul>';
+    sidebar.innerHTML = tag + lasttag + '</ul>';
     
 
 }
@@ -309,12 +311,13 @@ function find(){
 function search(){
     let fstr = document.querySelector('#input_find').value;
     editor.focus();
+    editor.gotoLine(0);
     console.log(fstr);
     editor.find(fstr,{
-        backwards: false,
-        wrap: false,
+        backwards: true,
+        wrap: true,
         caseSensitive: false,
-        wholeWord: true,
+        wholeWord: false,
         regExp: false
     });
 }
@@ -340,7 +343,14 @@ function PrintToPDF(){
         landscape: false
     }
 
-    
+    if(!folder_path){
+        folder_path = dialog.showOpenDialog({
+            properties:['openDirectory'],
+            title:"Select File",
+            buttonLabel:"Save",
+            
+        });
+    }
 
     while(isExist){
         const secondPath = "print" + pdfCounter + '.pdf';
@@ -404,9 +414,10 @@ function replacenow(){
     let fstr = document.querySelector("#input_find2").value;
     console.log(fstr);
     editor.focus();
+    editor.gotoLine(0);
     editor.find(fstr,{
-        backwards: false,
-        wrap: false,
+        backwards: true,
+        wrap: true,
         caseSensitive: false,
         wholeWord: false,
         regExp: false
@@ -445,12 +456,13 @@ function doCommand(){
 }
 
 // ファイルシステムツリーの構築案
-function getFileList(dirpath, callback){
+function getFileList(dirpath){
     /*ディレクトリを読み取り、fs.statプロパティを使ってファイルかディレクトリか判断する
 　　ディレクトリなら再帰し、ファイルならHTML要素を作成する　この再帰関数によってファイルシステムツリーを構築する*/
     //ディレクトリ内のファイルの配列を返す
     let dirArray = fs.readdirSync(dirpath);
-    dirListPathArray.push(dirpath);
+    console.log(dirpath)
+    console.log(dirArray);
     if(!dirArray){
         throw err("Can't read directory");
     }
@@ -458,43 +470,20 @@ function getFileList(dirpath, callback){
     for (const fileOrDir of dirArray) {
 
         const fp = path.join(dirpath, fileOrDir);
-
+        console.log(fp);
 
         if (fs.statSync(fp).isDirectory()) {
-            console.log(fp)
-            getFileList(fp, callback);
-            //ファイルの出力ループを抜けるとここに戻ってくる
-            callback(fileOrDir, 1);
-            //ファイルに到達するとelse節が実行される
+            console.log(fileOrDir);
+            tag += '<details><summary>' + fileOrDir + '</summary><ul>'
+            getFileList(fp);
+            tag += '</ul></details>'
+            
         } else {
-            callback(fileOrDir);
+            tag +='<li id="item ' + htmlCounter + '" onclick="openfile(' + htmlCounter 
+            + ')"  oncontextmenu="fileContextMenu(' + htmlCounter + ')">' + fileOrDir + '</li>'
+            htmlCounter++;
             console.log("dekiteruyo")
         }
     }
 
-}
-
-function concatFileListString(filename, checkDir){
-    if(checkDir === 1){
-        if(fisrtCheck){
-            familyTag = '<details><summary>' + filename + '</summary>';
-            tag += familyTag + bufTag + '</details>';
-
-            sidebar.innerHTML = tag;
-            fisrtCheck = false;
-        }
-        else{
-            familyTag = '<details><summary>' + filename + '</summary>';
-            tag = familyTag + bufTag + '</details>';
-            sidebar.innerHTML = tag.concat(sidebar.innerHTML);
-        }
-        
-        bufTag = "";
-
-    }
-    else{
-        bufTag += '<li id="item ' + htmlCounter + '" onclick="openfile(' + htmlCounter 
-        + ')"  oncontextmenu="fileContextMenu(' + htmlCounter + ')">' + filename + '</li>'
-    }
-    htmlCounter++;
 }

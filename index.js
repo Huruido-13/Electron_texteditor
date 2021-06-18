@@ -83,7 +83,7 @@ function createMenu(){
         }},
     ]},
     {label:"Find", submenu:[
-        {label:'Find',click:() =>{
+        {label:'Find',accelerator:'COmmandOrControl+F',click:() =>{
             find();
         }},
         {label:'Find Next',accelerator:'CommandOrControl+right',click:() =>{
