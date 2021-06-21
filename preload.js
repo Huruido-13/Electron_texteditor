@@ -5,7 +5,6 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const Encoding = require('encoding-japanese');
 
-
 window.remote = remote;
 window.BrowserWindow = BrowserWindow;
 window.Menu = Menu;

@@ -9,9 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="index.css">
-    <title>Sample_editor</title>
+    <title>My_editor</title>
 </head>
 
+<script>
+    window.nodeRequire = require;
+    delete window.module;
+</script>
 
 <body>
     <div class="modal" tabindex="-1" role="dialog" id="save-modal">
@@ -94,7 +98,7 @@
         <div class="col-12 col-sm-8 col-md-9 col-lg-10 m-0" id="editor_area"></div>
     </div>
     <div class="row m-0" id="footer">* this is footer. *</div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="./src/ace.js"></script>
     <script src="editor.js"></script>
 </body>
 
