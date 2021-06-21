@@ -17,12 +17,13 @@ var fisrtCheck = true;
 var contextcheck = false;
 var fileUrlObj = {};
 var dirCheck = false;
+var familyFolder_name = "";
 
 let menu_temp = [
-    {label:'create File', click:() =>{
-        createfile();
+    {label:'Create File', click:() =>{
+        createfile(false);
     }},
-    {label:'create Directory', click:() =>{
+    {label:'Create Directory', click:() =>{
         createfile(true);
     }},
         {role:'cut'},
@@ -99,9 +100,8 @@ function openfolder(){
     //ディレクトリを開かないとundefinedがリターンする
     if (result !== undefined){
         folder_path = result[0];
-        let folder_name = folder_path.split('\\');
-        tag = '<ul>';
-        tag += '<details><summary>' + '<b>' + folder_name[folder_name.length - 1] + '</b>' + '</summary><ul>'
+        //親ディレクトリのPATHを"\"で分割し配列にする
+        familyFolder_name = folder_path.split('\\');
         loadPath()
         footer.textContent = 'open dir:"' + folder_path + '".';
     } 
@@ -114,6 +114,11 @@ function openfolder(){
 function loadPath(){
     let dirArray = fs.readdirSync(folder_path)
     let lasttag ="";
+    
+    tag = '<ul>';
+    //配列の最後を取得することで親ディレクトリ名を取得する
+    tag += '<details><summary>' + '<b>' + familyFolder_name[familyFolder_name.length - 1] + '</b>' + '</summary><ul>'
+
     folder_items = dirArray;
 
     for (const n in dirArray){
@@ -251,16 +256,18 @@ function savefile(){
     });
 }
 
-function createfile(n = false){
+function createfile(n){
     dirCheck = n;
     $('#save-modal').modal('show');
 }
 
 function createfileresult(){
     if(dirCheck){
+        dirCheck = false;
         createdirectory();
         return;
-    }
+    };
+
     current_fname = document.querySelector("#input_file_name").value;
     if(folder_path === null){
         folder_path = dialog.showOpenDialogSync({
@@ -268,8 +275,19 @@ function createfileresult(){
             title:"Select File",
             buttonLabel:"Load",})
         folder_path = folder_path[0];
-    }
+    };
+
     let fpath = path.join(folder_path, current_fname);
+
+    readedFolder_path = fs.readdirSync(folder_path);
+    
+    for(folder of readedFolder_path){
+        if(path.join(folder_path,folder) === fpath){
+            alert("同名のファイルが存在します。");
+            return;
+        }
+    };
+
     fs.writeFile(fpath, '', (err) =>{
         editor.session.getDocument().setValue('');
         footer.textContent = '"' + current_fname + '" created.';
@@ -279,21 +297,32 @@ function createfileresult(){
 }
 
 function createdirectory(){
-    current_fname = document.querySelector("#input_file_name").value;
+    current_dname = document.querySelector("#input_file_name").value;
+
     if(folder_path === null){
         folder_path = dialog.showOpenDialogSync({
             properties:['openDirectory'],
             title:"Select File",
             buttonLabel:"Load",})
         folder_path = folder_path[0];
-    }
-    let fpath = path.join(folder_path, current_fname);
+    };
+
+    let fpath = path.join(folder_path, current_dname);
+
+    //ディレクトリを作成する親ディレクトリに同名のディレクトリが存在するかチェックする
+    readedFolder_path = fs.readdirSync(folder_path);
+    for(dir of readedFolder_path){
+        if(path.join(folder_path,dir) === fpath){
+            alert("同名のディレクトリが存在します。");
+            return;
+        }
+    };
+
     fs.mkdir(fpath, (err) =>{
         editor.session.getDocument().setValue('');
-        footer.textContent = '"' + current_fname + '" created.';
+        footer.textContent = '"' + current_dname + '" created.';
         change_flg = false;
         loadPath();
-        dirCheck = false;
     })
 }
 
