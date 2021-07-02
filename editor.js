@@ -45,6 +45,7 @@ window.addEventListener('contextmenu', (e) =>{
 
 window.addEventListener('DOMContentLoaded', onLoad);
 
+
 function onLoad(){
     let w = BrowserWindow.getFocusedWindow();
     //ウィンドウが閉じられた際に発生するイベントでファイルを自動保存
@@ -241,6 +242,12 @@ function setExt(fpathExtention){
         case '.php':
             setMode('php');
             break;
+        case '.c':
+            setMode('C and C++');
+            break;
+        case '.cpp':
+            setMode('C and C++');
+            break;
         default:
             return;
     }
@@ -383,10 +390,10 @@ function search(){
     editor.focus();
     editor.gotoLine(0);
     editor.find(fstr,{
-        backwards: true,
+        backwards: false,
         wrap: true,
         caseSensitive: false,
-        wholeWord: false,
+        wholeWord: true,
         regExp: false
     });
 }
@@ -419,6 +426,9 @@ function PrintToPDF(){
             buttonLabel:"Save",
             
         });
+        if(!folder_path){
+            return;
+        }
         folder_path = folder_path[0];
     }
 
@@ -455,24 +465,24 @@ function PrintToPDF(){
 
 function openPDF(PDFpath){
     alert("PDFビューワーから開いてください")
-    // win = new BrowserWindow({
-    //     width: 800,
-    //     height: 600,
-    //     webPreferences:{
-    //         nodeIntegration:true,
-    //         enableRemoteModule: true,
-    //         contextIsolation: false,
-    //         defaultFontFamily:{
-    //             defaultFontSize:24
-    //         },
-    //         preload:path.join(app.getAppPath(), 'preload.js')
-    //     }
-    // });
-    // win.loadFile('./PDFVIEWER/pdfviewer.html');
-    // win.webContents.openDevTools();
-    // PDFpath = 'loadPDFfromEditor("' + PDFpath + '")';
-    // console.log(PDFpath);
-    // win.webContents.executeJavaScript('btnClick()');
+    win = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences:{
+            nodeIntegration:true,
+            enableRemoteModule: true,
+            contextIsolation: false,
+            defaultFontFamily:{
+                defaultFontSize:24
+            },
+            preload:path.join(app.getAppPath(), 'preload.js')
+        }
+    });
+    win.loadFile('./PDFVIEWER/pdfviewer.html');
+    win.webContents.openDevTools();
+    PDFpath = 'loadPDFfromEditor("' + PDFpath + '")';
+    console.log(PDFpath);
+    win.webContents.executeJavaScript('btnClick()');
 
 }
 

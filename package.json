@@ -1,15 +1,20 @@
 {
-    "name": "sample_editor",
+    "name": "my_editor",
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "author": "",
+    "author": "Takuma",
     "license": "ISC",
     "description": "",
     "dependencies": {
         "@pdftron/webviewer": "^7.3.3",
-        "encoding-japanese": "^1.0.30"
+        "encoding-japanese": "^1.0.30",
+        "jquery": "^3.6.0"
+    },
+    "devDependecies":{"electron": "11.4.8"},
+    "build":{
+        "productName": "my_editor",
+        "copyright": "2021 ${author} software"}
     }
-}

@@ -78,10 +78,10 @@ function createMenu(){
         }}
     ]},
     {label:'Font',submenu:[
-        {label:"ZoomIN", click:() =>{
+        {label:"ZoomIN", accelerator:'CommandOrControl+PageUp',click:() =>{
             setFontSize(++fontSize)
         }},
-        {label:"ZoomOut", click:() =>{
+        {label:"ZoomOut",accelerator:'CommandOrControl+PageDown', click:() =>{
             setFontSize(--fontSize)
         }},
     ]},
@@ -210,3 +210,6 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }})
+
+
+
