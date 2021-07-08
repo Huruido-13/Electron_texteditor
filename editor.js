@@ -464,6 +464,7 @@ function PrintToPDF(){
 }
 
 function openPDF(PDFpath){
+    //Electronのバージョンによっては動かないので注意
     alert("PDFビューワーから開いてください")
     win = new BrowserWindow({
         width: 800,

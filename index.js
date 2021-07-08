@@ -206,6 +206,7 @@ function openTerminal(){
 createMenu();
 app.whenReady().then(createWindow);
 
+//アプリケーションウィンドウがすべて閉じられた時の動作
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()

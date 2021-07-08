@@ -1,4 +1,4 @@
-//electronバージョン11以降でしか動きません
+//electronバージョン11以降でしか動かないので注意
 
 const { default: WebViewer } = require("@pdftron/webviewer");
 

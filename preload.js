@@ -15,6 +15,5 @@ window.app = app;
 window.execSync = execSync;
 window.Encoding = Encoding;
 
-
 window.nodeRequire = require;
 delete window.module;
